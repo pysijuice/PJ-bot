@@ -1,5 +1,5 @@
-﻿namespace PJ_bot {
-    public enum UserCommands {
-        Rand
-    }
+﻿namespace PJ_bot;
+
+public enum UserCommands {
+    Rand
 }

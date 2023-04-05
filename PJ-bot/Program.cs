@@ -2,54 +2,62 @@
 using Discord.WebSocket;
 using Newtonsoft.Json;
 
-namespace PJ_bot {
-    public class Program {
-        private ClientConfig _clientConfig;
+namespace PJ_bot; 
 
-        private DiscordSocketClient _client;
+public class Program {
+    private ClientConfig _clientConfig;
 
-        static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
+    private DiscordSocketClient _client;
 
-        private async Task MainAsync() {
-            SerializeJson();
+    private const char PREFIX = '!';
 
-            DiscordSocketConfig config = new DiscordSocketConfig();
-            config.GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent;
-            _client = new DiscordSocketClient(config);
+    static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
 
-            _client.MessageReceived += OnMessageReceived;
-            _client.Log += OnLogReceived;
+    private async Task MainAsync() {
+        SerializeJson();
 
-            await _client.LoginAsync(TokenType.Bot, _clientConfig.Token);
-            await _client.StartAsync();
+        DiscordSocketConfig config = new DiscordSocketConfig();
+        config.GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent;
+        _client = new DiscordSocketClient(config);
 
-            Console.ReadLine();
-        }
+        _client.MessageReceived += OnMessageReceived;
+        _client.Log += OnLogReceived;
 
-        private Task OnLogReceived(LogMessage message) {
-            Console.WriteLine(message.ToString());
+        await _client.LoginAsync(TokenType.Bot, _clientConfig.Token);
+        await _client.StartAsync();
 
+        Console.ReadLine();
+    }
+
+    private Task OnLogReceived(LogMessage message) {
+        Console.WriteLine(message.ToString());
+
+        return Task.CompletedTask;
+    }
+
+    private Task OnMessageReceived(SocketMessage message) {
+        if (message.Author.IsBot || message.Content[0] != PREFIX) {
             return Task.CompletedTask;
         }
 
-        private Task OnMessageReceived(SocketMessage message) {
-            if (message.Author.IsBot) {
-                return Task.CompletedTask;
-            }
+        var userMessage = message.Content.ToLower().Substring(1)
+            .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
-            var userMessage = message.Content.ToLower();
+        var messageCommand = userMessage[0];
+        var messageParameters = userMessage.Skip(1);
 
-            if (userMessage == "hello") {
-                message.Channel.SendMessageAsync("привет");
-            }
+        if (messageCommand == UserCommands.Rand.ToString().ToLower()) {
+            var botText = BotCommands.Rand(messageCommand, messageParameters);
 
-            return Task.CompletedTask;
+            message.Channel.SendMessageAsync(botText);
         }
 
-        private void SerializeJson() {
-            _clientConfig = new ClientConfig();
+        return Task.CompletedTask;
+    }
 
-            _clientConfig = JsonConvert.DeserializeObject<ClientConfig>(File.ReadAllText("json/config.json"));
-        }
+    private void SerializeJson() {
+        _clientConfig = new ClientConfig();
+
+        _clientConfig = JsonConvert.DeserializeObject<ClientConfig>(File.ReadAllText("json/config.json"));
     }
 }
