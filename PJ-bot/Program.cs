@@ -14,7 +14,7 @@ public class Program {
     static void Main(string[] args) => new Program().MainAsync().GetAwaiter().GetResult();
 
     private async Task MainAsync() {
-        SerializeJson();
+        SerializeConfigJson();
 
         DiscordSocketConfig config = new DiscordSocketConfig();
         config.GatewayIntents = GatewayIntents.AllUnprivileged | GatewayIntents.MessageContent;
@@ -40,24 +40,40 @@ public class Program {
             return Task.CompletedTask;
         }
 
+        RunCommand(message);
+
+        return Task.CompletedTask;
+    }
+
+    private void SerializeConfigJson() {
+        _clientConfig = new ClientConfig();
+
+        _clientConfig = JsonConvert.DeserializeObject<ClientConfig>(File.ReadAllText("json/config.json"));
+    }
+
+    private void RunCommand(SocketMessage message) {
         var userMessage = message.Content.ToLower().Substring(1)
             .Split(new char[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
 
         var messageCommand = userMessage[0];
         var messageParameters = userMessage.Skip(1);
 
+        if (messageCommand == UserCommands.Help.ToString().ToLower()) {
+            var botText = BotCommands.Help(message, messageCommand);
+
+            message.Channel.SendMessageAsync(botText);
+        }
+
+        if (messageCommand == UserCommands.Info.ToString().ToLower()) {
+            var botText = BotCommands.Info(message, messageCommand);
+
+            message.Channel.SendMessageAsync(botText);
+        }
+
         if (messageCommand == UserCommands.Rand.ToString().ToLower()) {
             var botText = BotCommands.Rand(messageCommand, messageParameters);
 
             message.Channel.SendMessageAsync(botText);
         }
-
-        return Task.CompletedTask;
-    }
-
-    private void SerializeJson() {
-        _clientConfig = new ClientConfig();
-
-        _clientConfig = JsonConvert.DeserializeObject<ClientConfig>(File.ReadAllText("json/config.json"));
     }
 }
