@@ -1,5 +1,9 @@
 # PJ Discord Bot 
 
+<p align="center">
+  <img src="https://user-images.githubusercontent.com/73884491/231254456-41ecee49-56fb-461d-9c6a-21fe0203ed40.png" />
+</p>
+
 ## Bot commands:
 
 This command outputs information about all commands
